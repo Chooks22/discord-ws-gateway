@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "alwaysStrict": true,
+    "target": "ES2022",
+    "module": "Preserve",
+    "moduleDetection": "force",
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "noEmit": true
+  },
+  "include": [
+    "src"
+  ]
+}

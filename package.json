@@ -1,0 +1,40 @@
+{
+  "name": "discord-ws-gateway",
+  "version": "1.0.0",
+  "description": "Simple and tiny implementation of Discord's Gateway using web standard APIs",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "!dist/index.d.cts"
+  ],
+  "scripts": {
+    "build": "tsup --format esm,cjs --dts src/index.ts src/index.ts"
+  },
+  "devDependencies": {
+    "@chookslint/eslint-config-typescript": "^3.0.2",
+    "@typescript-eslint/eslint-plugin": "^7.17.0",
+    "@typescript-eslint/parser": "^7.17.0",
+    "discord-api-types": "^0.37.93",
+    "eslint": "^8.57.0",
+    "tsup": "^8.2.2",
+    "typescript": "^5.5.3"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "author": "Chooks22 <chooksdev@gmail.com>",
+  "homepage": "https://github.com/Chooks22/discord-ws-gateway",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chooks22/discord-ws-gateway.git"
+  },
+  "keywords": [
+    "discord",
+    "gateway"
+  ]
+}
