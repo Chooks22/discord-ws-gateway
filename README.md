@@ -3,7 +3,7 @@
 Simple and tiny implementation of Discord's Gateway using web standard APIs.
 
 This package simply implements [gateway connections](https://discord.com/developers/docs/topics/gateway#connections)
-and emits dispatch events.
+and emits dispatch events.  
 This package is not a client; there are no utilties, wrappers, caching, nor sharding.
 It is meant to be a proper "low-level" library to build those features on top on.
 
@@ -46,4 +46,8 @@ const client = new Client(gateway.url, {
 client.addEventListener("READY", (e) => {
   console.log(`Connected to gateway as ${e.d.user.username}!`);
 });
+
+## License
+
+[MIT](LICENSE)
 ```
