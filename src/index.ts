@@ -1,4 +1,4 @@
-import type { GatewayDispatchEvents, GatewayDispatchPayload, GatewayHeartbeat, GatewayIdentify, GatewayIdentifyData, GatewayReceivePayload, GatewaySendPayload } from 'discord-api-types/v10'
+import type { GatewayDispatchEvents, GatewayDispatchPayload, GatewayHeartbeat, GatewayIdentify, GatewayIdentifyData, GatewayReceivePayload, GatewayResume, GatewaySendPayload } from 'discord-api-types/v10'
 import { homepage, version } from '../package.json'
 
 const USER_AGENT = `Discord-Gateway/${version} (+${homepage})`
@@ -15,16 +15,22 @@ export class Client {
   #listeners = new Map<`${GatewayDispatchEvents}` | 'ALL', DispatchListener<`${GatewayDispatchEvents}`>[]>()
   #interval!: number
   #timeout!: number
-  socket: WebSocket
+  socket!: WebSocket
   #s: number | null = null
   #zombied = false
   #url: string
   #resume_url!: string
+  #session_id!: string
+  #identity: GatewayIdentifyData
   closed = false
   constructor(gatewayUrl: string, identity: GatewayIdentifyData) {
     this.#url = gatewayUrl
+    this.#identity = identity
+    void this.#connect(gatewayUrl)
+  }
+  #connect(url: string) {
     /** @todo(Chooks22) add different encoding support */
-    this.socket = new WebSocket(`${gatewayUrl}?v=10&encoding=json`)
+    this.socket = new WebSocket(`${url}?v=10&encoding=json`)
 
     this.socket.addEventListener('message', (e: MessageEvent<string>) => {
       const data = JSON.parse(e.data) as GatewayReceivePayload
@@ -45,6 +51,7 @@ export class Client {
           }
 
           if (data.t === 'READY') {
+            this.#session_id = data.d.session_id
             this.#resume_url = data.d.resume_gateway_url
           }
 
@@ -63,11 +70,11 @@ export class Client {
           this.#send<GatewayIdentify>({
             op: 2,
             d: {
-              ...identity,
+              ...this.#identity,
               properties: {
-                os: identity.properties.os,
-                browser: `${identity.properties.browser} ${USER_AGENT}`.trim(),
-                device: `${identity.properties.device} ${USER_AGENT}`.trim(),
+                os: this.#identity.properties.os,
+                browser: `${this.#identity.properties.browser} ${USER_AGENT}`.trim(),
+                device: `${this.#identity.properties.device} ${USER_AGENT}`.trim(),
               },
             },
           })
@@ -85,7 +92,16 @@ export class Client {
           this.#heartbeat()
           break
         }
+        // Reconnect
+        case 7: {
+          void this.#resume()
+          break
+        }
       }
+    })
+
+    return new Promise(res => {
+      this.socket.addEventListener('open', res, { once: true })
     })
   }
   #send<T extends GatewaySendPayload>(data: T): void {
@@ -94,20 +110,31 @@ export class Client {
   }
   #heartbeat() {
     if (this.#zombied) {
-      /** @todo(Chooks22) handle zombied connections */
-      this.#resume()
+      void this.#resume()
       return
     }
 
     this.#zombied = true
     this.#send<GatewayHeartbeat>({ op: 1, d: this.#s })
   }
+  async #resume() {
+    this.close()
+    await this.#connect(this.#resume_url)
+    this.#send<GatewayResume>({
+      op: 6,
+      d: {
+        token: this.#identity.token,
+        seq: this.#s!,
+        session_id: this.#session_id,
+      },
+    })
+  }
   /**
-   * @todo(Chooks22) implement resume
-   * @see {@link https://discord.com/developers/docs/topics/gateway#resuming}
+   * @todo(Chooks22) handle reconnect cases
    */
-  #resume() {
-    throw new Error('Resume not implemented.')
+  #reconnect() {
+    this.close()
+    void this.#connect(this.#url)
   }
   addEventListener<T extends `${GatewayDispatchEvents}`>(event: T | 'ALL', callback: DispatchListener<T>): this {
     const listeners = this.#listeners.get(event)
