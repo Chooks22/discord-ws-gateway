@@ -46,8 +46,8 @@ const client = new Client(gateway.url, {
 client.addEventListener("READY", (e) => {
   console.log(`Connected to gateway as ${e.d.user.username}!`);
 });
+```
 
 ## License
 
 [MIT](LICENSE)
-```
