@@ -1,6 +1,6 @@
 {
   "name": "discord-ws-gateway",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Simple and tiny implementation of Discord's Gateway using web standard APIs",
   "type": "module",
   "license": "MIT",
